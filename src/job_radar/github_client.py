@@ -48,7 +48,9 @@ class GitHubClient:
         return response.text
     
     def get_json_file(self, owner: str, repo: str, path: str, branch: str = "dev"):
+        from job_radar.logger import logger
         url = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
+        logger.info(f"Downloading JSON from {owner}/{repo}")
 
         response = httpx.get(url, timeout=20)
 

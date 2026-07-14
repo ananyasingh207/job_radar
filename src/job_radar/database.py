@@ -1,8 +1,9 @@
 import sqlite3
 import hashlib
 from pathlib import Path
-from typing import List, Tuple
+from typing import List
 from job_radar.models import Job
+from job_radar.logger import logger
 
 DB_PATH = Path(__file__).parent.parent.parent / "data" / "jobs.db"
 
@@ -28,29 +29,37 @@ def init_db():
         """)
         conn.commit()
 
-def save_jobs(jobs: List[Job]) -> Tuple[int, int]:
+def save_jobs(jobs: List[Job]) -> List[Job]:
     """
-    Save jobs to the database, ignoring duplicates based on hash.
-    Returns a tuple of (new_jobs_inserted, existing_jobs_skipped).
+    Save jobs to the database, ignoring duplicates.
+    Returns a list of newly inserted Job objects.
     """
+    logger.info(f"Checking {len(jobs)} parsed jobs against the database...")
     init_db()
     
-    data = []
-    for job in jobs:
-        job_hash = _get_job_hash(job)
-        data.append((job_hash, job.company, job.role, job.location, job.apply_url, job.source))
-        
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
-        cursor.executemany("""
-            INSERT OR IGNORE INTO jobs (hash, company, role, location, apply_url, source)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, data)
-        inserted = cursor.rowcount
-        conn.commit()
+        cursor.execute("SELECT hash FROM jobs")
+        existing_hashes = {row[0] for row in cursor.fetchall()}
         
-    skipped = len(jobs) - inserted
-    return inserted, skipped
+        new_jobs = []
+        data = []
+        for job in jobs:
+            job_hash = _get_job_hash(job)
+            if job_hash not in existing_hashes:
+                new_jobs.append(job)
+                data.append((job_hash, job.company, job.role, job.location, job.apply_url, job.source))
+                existing_hashes.add(job_hash)
+                
+        if data:
+            cursor.executemany("""
+                INSERT INTO jobs (hash, company, role, location, apply_url, source)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, data)
+            conn.commit()
+            
+    logger.info(f"Stored {len(new_jobs)} new jobs. Skipped {len(jobs) - len(new_jobs)} existing.")
+    return new_jobs
 
 def get_all_jobs() -> List[Job]:
     """Retrieve all jobs from the database."""

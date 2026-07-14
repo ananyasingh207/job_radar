@@ -1,5 +1,6 @@
 from typing import Any
 from job_radar.models import Job
+from job_radar.logger import logger
 
 def parse_simplify_jobs(raw_jobs: list[dict[str, Any]]) -> list[Job]:
     """
@@ -11,6 +12,7 @@ def parse_simplify_jobs(raw_jobs: list[dict[str, Any]]) -> list[Job]:
     Returns:
         List of normalized Job dataclass objects.
     """
+    logger.info(f"Parsing {len(raw_jobs)} raw jobs...")
     jobs = []
     for raw_job in raw_jobs:
         if not isinstance(raw_job, dict):
