@@ -27,6 +27,31 @@ def init_db():
                 source TEXT
             )
         """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS page_hashes (
+                url TEXT PRIMARY KEY,
+                hash TEXT
+            )
+        """)
+        conn.commit()
+
+def get_page_hash(url: str) -> str:
+    """Retrieve the stored hash for a given page URL."""
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT hash FROM page_hashes WHERE url = ?", (url,))
+        row = cursor.fetchone()
+        return row[0] if row else None
+
+def save_page_hash(url: str, hash_val: str):
+    """Save or update the hash for a given page URL."""
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO page_hashes (url, hash)
+            VALUES (?, ?)
+            ON CONFLICT(url) DO UPDATE SET hash=excluded.hash
+        """, (url, hash_val))
         conn.commit()
 
 def save_jobs(jobs: List[Job]) -> List[Job]:
