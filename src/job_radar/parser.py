@@ -2,17 +2,18 @@ from typing import Any
 from job_radar.models import Job
 from job_radar.logger import logger
 
-def parse_simplify_jobs(raw_jobs: list[dict[str, Any]]) -> list[Job]:
+def parse_simplify_jobs(raw_jobs: list[dict[str, Any]], repo_name: str) -> list[Job]:
     """
     Parse raw JSON job listings from SimplifyJobs into normalized Job objects.
     
     Args:
         raw_jobs: List of dictionaries representing job listings.
+        repo_name: Name of the repository the jobs came from.
         
     Returns:
         List of normalized Job dataclass objects.
     """
-    logger.info(f"Parsing {len(raw_jobs)} raw jobs...")
+    logger.info(f"Parsing {len(raw_jobs)} raw jobs from {repo_name}...")
     jobs = []
     for raw_job in raw_jobs:
         if not isinstance(raw_job, dict):
@@ -31,7 +32,7 @@ def parse_simplify_jobs(raw_jobs: list[dict[str, Any]]) -> list[Job]:
             role=str(raw_job.get("title") or ""),
             location=location,
             apply_url=str(raw_job.get("url") or ""),
-            source=str(raw_job.get("source") or "")
+            source=repo_name
         )
         jobs.append(job)
         

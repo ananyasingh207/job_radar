@@ -15,12 +15,12 @@ def send_job(job: Job):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     
     text = (
-        f"🌟 <b>New Job Alert</b>\n\n"
-        f"<b>Company:</b> {job.company}\n"
-        f"<b>Role:</b> {job.role}\n"
-        f"<b>Location:</b> {job.location}\n"
-        f"<b>Source:</b> {job.source}\n\n"
-        f"<a href='{job.apply_url}'>Apply Here</a>"
+        f"🚨 <b>NEW INTERNSHIP</b>\n\n"
+        f"<b>Source:</b>\n{job.source}\n\n"
+        f"<b>Company:</b>\n{job.company}\n\n"
+        f"<b>Role:</b>\n{job.role}\n\n"
+        f"<b>Location:</b>\n{job.location}\n\n"
+        f"<b>Apply:</b>\n<a href='{job.apply_url}'>{job.apply_url}</a>"
     )
     
     payload = {
